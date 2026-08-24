@@ -4,7 +4,9 @@ import express from 'express';
 
 import { env } from './lib/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { accountRouter } from './routes/account.routes';
 import { authRouter } from './routes/auth.routes';
+import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
 
 export function createApp() {
@@ -21,6 +23,8 @@ export function createApp() {
 
   app.use('/api/health', healthRouter);
   app.use('/api/auth', authRouter);
+  app.use('/api/accounts', accountRouter);
+  app.use('/api/categories', categoryRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
