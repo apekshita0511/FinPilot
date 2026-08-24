@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,4 +5,242 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum AccountType {
+  BANK
+  CASH
+  CREDIT_CARD
+  INVESTMENT
+  OTHER
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum TransactionSource {
+  MANUAL
+  IMPORT
+}
+
+enum ImportBatchStatus {
+  COMPLETED
+  FAILED
+}
+
+// email uniqueness is enforced case-insensitively at the application layer
+// (services normalize to lowercase before every read/write) rather than via
+// Postgres citext, to avoid depending on a Postgres extension.
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  categories    Category[]
+  transactions  Transaction[]
+  transfers     Transfer[]
+  budgets       Budget[]
+  importBatches ImportBatch[]
+  auditEntries  AuditEntry[]
+
+  @@map("users")
+}
+
+model Account {
+  id             String      @id @default(uuid())
+  userId         String      @map("user_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  accountType    AccountType @map("account_type")
+  currency       String      @default("INR") @db.VarChar(3)
+  openingBalance Decimal     @map("opening_balance") @db.Decimal(14, 2)
+  currentBalance Decimal     @map("current_balance") @db.Decimal(14, 2)
+  isActive       Boolean     @default(true) @map("is_active")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  transactions  Transaction[]
+  transfersOut  Transfer[]    @relation("TransferSource")
+  transfersIn   Transfer[]    @relation("TransferDestination")
+  importBatches ImportBatch[]
+
+  // Guardrail, not a hard requirement: prevents two accounts with the
+  // identical name for one user. This also serves as the index PostgreSQL
+  // uses for "list my accounts" (userId is the leftmost column), so no
+  // separate @@index([userId]) is needed.
+  @@unique([userId, name])
+  @@map("accounts")
+}
+
+model Category {
+  id        String       @id @default(uuid())
+  userId    String       @map("user_id")
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      CategoryType
+  color     String?      @db.VarChar(7)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  transactions Transaction[]
+  budgets      Budget[]
+
+  @@unique([userId, name])
+  @@map("categories")
+}
+
+model Transaction {
+  id String @id @default(uuid())
+
+  // Denormalized alongside accountId (see FinPilot Phase 1 design doc) so the
+  // hot-path query — "this user's transactions across all their accounts,
+  // paginated/filtered by date" — never needs to join through Account. Set
+  // once at creation and never reassigned, so it cannot drift.
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accountId String  @map("account_id")
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  categoryId String?   @map("category_id")
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  type   TransactionType
+  // Always positive; direction is expressed via `type`, not the sign of amount.
+  amount Decimal         @db.Decimal(14, 2)
+
+  description     String
+  transactionDate DateTime          @map("transaction_date") @db.Date
+  source          TransactionSource @default(MANUAL)
+
+  // Bank-provided reference from a CSV import, when available — preferred
+  // over `fingerprint` for duplicate detection when present.
+  externalReference String? @map("external_reference")
+
+  // sha256(accountId | date | amount | normalized description | type),
+  // set only for imported rows. Postgres unique constraints treat NULL as
+  // distinct from NULL, so manually entered rows (fingerprint = null) never
+  // collide with each other here.
+  fingerprint String?
+
+  transferId String?   @map("transfer_id")
+  transfer   Transfer? @relation(fields: [transferId], references: [id], onDelete: SetNull)
+
+  importBatchId String?      @map("import_batch_id")
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([accountId, fingerprint])
+  @@unique([accountId, externalReference])
+  @@index([userId, transactionDate])
+  @@index([accountId, transactionDate])
+  @@index([userId, categoryId])
+  @@map("transactions")
+}
+
+model Transfer {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sourceAccountId String  @map("source_account_id")
+  sourceAccount   Account @relation("TransferSource", fields: [sourceAccountId], references: [id], onDelete: Cascade)
+
+  destinationAccountId String  @map("destination_account_id")
+  destinationAccount   Account @relation("TransferDestination", fields: [destinationAccountId], references: [id], onDelete: Cascade)
+
+  // Always positive. No `status` field: a Transfer row only ever exists if
+  // the whole locked DB transaction that created it committed successfully
+  // (see FinPilot Phase 1 concurrency design) — there is no v1 workflow that
+  // produces a pending/failed Transfer row.
+  amount      Decimal @db.Decimal(14, 2)
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+
+  @@index([userId, createdAt])
+  @@map("transfers")
+}
+
+model Budget {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  year  Int
+  month Int
+
+  // Spending is always derived from Transaction aggregates at query time,
+  // never stored here (see FinPilot Phase 1 design).
+  limitAmount Decimal @map("limit_amount") @db.Decimal(14, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, categoryId, year, month])
+  @@map("budgets")
+}
+
+model ImportBatch {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accountId String  @map("account_id")
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  filename      String
+  totalRows     Int               @map("total_rows")
+  importedRows  Int               @map("imported_rows")
+  duplicateRows Int               @map("duplicate_rows")
+  failedRows    Int               @map("failed_rows")
+  status        ImportBatchStatus
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  transactions Transaction[]
+
+  @@index([userId, createdAt])
+  @@map("import_batches")
+}
+
+// Append-only. No update/delete operations are ever exposed via the API.
+model AuditEntry {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  action     String
+  entityType String @map("entity_type")
+  entityId   String @map("entity_id")
+
+  // The one deliberate use of Json in this schema: audit metadata is
+  // inherently variable-shape (a transaction edit's diff looks nothing like
+  // an import summary) and is never queried relationally.
+  metadata Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("audit_entries")
 }
