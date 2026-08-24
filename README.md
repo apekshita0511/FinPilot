@@ -4,9 +4,11 @@ A personal finance and cash-flow management platform. Users manage multiple fina
 
 This is **not** a banking application — it does not connect to real bank accounts and does not process real payments. Users enter transactions manually or import CSV exports from their financial institution.
 
+**Live**: [finpilot-web-blue.vercel.app](https://finpilot-web-blue.vercel.app)
+
 ## Status
 
-Full-stack application, feature-complete for v1 and tested against realistic data volume. Not yet deployed — see [Roadmap](#roadmap).
+Full-stack application, feature-complete for v1, tested against realistic data volume, and deployed to production. See [Roadmap](#roadmap) for what's intentionally out of scope.
 
 ## Features
 
@@ -144,7 +146,17 @@ All other query shapes (default listing, category filter, spending-by-category, 
 
 ## Deployment
 
-Not yet deployed. Planned: a static host for the Vite build, a container host for the API, and a managed Postgres instance — concrete providers to be chosen when this is reached.
+Live on Vercel:
+
+- **Frontend**: [finpilot-web-blue.vercel.app](https://finpilot-web-blue.vercel.app) — static Vite build.
+- **API**: deployed as a single Vercel serverless function (Vercel auto-detects the Express app from `apps/api/src/server.ts`/`app.ts`'s default export — no custom Lambda handler or `vercel.json` rewrites needed for the API itself).
+- **Database**: Neon Postgres, provisioned through the Vercel Marketplace.
+
+**Frontend and API are two separate Vercel projects sharing one origin**, not two independent domains — `apps/web/vercel.json` rewrites `/api/*` on the frontend's domain through to the API project. This is a deliberate architectural choice, not just a convenience: auth cookies are `SameSite=Strict`, and `*.vercel.app` is on the public suffix list, so two separate `*.vercel.app` subdomains are different *sites* for cookie purposes — the browser would silently refuse to send the auth cookie cross-domain. Routing through one origin keeps the request genuinely same-site, so the cookie security model designed in Phase 4 needed zero compromises to deploy.
+
+Verified in production (not just locally): registration, login, account creation, transactions, transfers (including the balance math), CSV import with duplicate detection, budgets, and analytics — each checked against the live database, several through actual browser automation against the live URL, not just `curl`.
+
+**Redeploying**: `vercel --prod` from the repository root (after `vercel link --project finpilot-web` or `finpilot-api` — each project's Root Directory is configured server-side to its `apps/*` subdirectory, so deploys must upload the full monorepo tree from root, not from within the subdirectory). Database schema changes: `prisma migrate deploy` against Neon's non-pooled connection string (`vercel env pull` for the values).
 
 ## Known Limitations
 
