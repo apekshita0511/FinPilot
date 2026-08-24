@@ -1,21 +1,28 @@
+import { Prisma } from '@prisma/client';
+
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../middleware/errorHandler';
+import { adjustAccountBalance, lockAccount } from './balance.service';
 import { recordAudit } from './audit.service';
 import type { CreateTransferInput } from '../validation/transfer.validation';
 
 /**
- * NAIVE, INTENTIONALLY UNSAFE first pass — see FinPilot Phase 5 design.
+ * See FinPilot Phase 5 design + `concurrentTransfer.test.ts`.
  *
- * This reads each account's balance, checks it in application code, and
- * writes back a balance computed from that (by-then possibly stale) read.
- * There is no row lock between the read and the write, so two concurrent
- * transfers debiting the same account can both read the pre-transfer
- * balance, both pass the sufficient-funds check, and both write — losing
- * one of the two debits. This is the classic "lost update" race condition.
+ * The naive version of this function (see the "test: reproduce concurrent
+ * transfer race" commit) read each account's balance, checked it in
+ * application code, and wrote back a balance computed from that read —
+ * with no lock between the read and the write. Two concurrent transfers
+ * could both read the pre-transfer balance, both pass the sufficient-funds
+ * check, and both commit: a lost update.
  *
- * `concurrentTransfer.test.ts` proves this fails before the fix lands in
- * the next commit ("feat: make transfers atomic"), which replaces the body
- * of this function with a locked version built on `balanceService`.
+ * This version fixes it with pessimistic row locking: `SELECT ... FOR
+ * UPDATE` on both accounts, in a fixed order, before anything is read or
+ * written. A second concurrent transfer against the same account simply
+ * blocks at the lock until the first transaction commits or rolls back —
+ * by the time it acquires the lock and re-reads the balance, it sees the
+ * first transfer's effect and correctly fails the funds check if it can no
+ * longer be satisfied.
  */
 export async function createTransfer(userId: string, input: CreateTransferInput) {
   if (input.sourceAccountId === input.destinationAccountId) {
@@ -32,19 +39,32 @@ export async function createTransfer(userId: string, input: CreateTransferInput)
     throw new ApiError(404, 'Destination account not found');
   }
 
-  // Unlocked read — a concurrent request can read the same value before
-  // either one writes.
-  if (source.currentBalance.lessThan(input.amount)) {
-    throw new ApiError(409, 'Insufficient balance');
-  }
+  const amount = new Prisma.Decimal(input.amount);
 
   return prisma.$transaction(async (tx) => {
+    // Lock both account rows in a fixed order (ascending id), regardless
+    // of which is source and which is destination. Without this, a
+    // concurrent transfer in the opposite direction (B -> A while this one
+    // does A -> B) could deadlock: each transaction would hold one lock
+    // and wait forever for the other.
+    const [firstId, secondId] = [input.sourceAccountId, input.destinationAccountId].sort();
+    await lockAccount(tx, firstId);
+    await lockAccount(tx, secondId);
+
+    // Re-read the now-locked balance. Any other transaction that touched
+    // this row has already committed or rolled back by the time our lock
+    // was granted, so this reflects reality, not a stale snapshot.
+    const lockedSource = await tx.account.findUniqueOrThrow({ where: { id: input.sourceAccountId } });
+    if (lockedSource.currentBalance.lessThan(amount)) {
+      throw new ApiError(409, 'Insufficient balance');
+    }
+
     const transfer = await tx.transfer.create({
       data: {
         userId,
         sourceAccountId: input.sourceAccountId,
         destinationAccountId: input.destinationAccountId,
-        amount: input.amount,
+        amount,
         description: input.description,
       },
     });
@@ -56,7 +76,7 @@ export async function createTransfer(userId: string, input: CreateTransferInput)
         userId,
         accountId: input.sourceAccountId,
         type: 'TRANSFER_OUT',
-        amount: input.amount,
+        amount,
         description: input.description ?? `Transfer to ${destination.name}`,
         transactionDate: now,
         source: 'MANUAL',
@@ -69,7 +89,7 @@ export async function createTransfer(userId: string, input: CreateTransferInput)
         userId,
         accountId: input.destinationAccountId,
         type: 'TRANSFER_IN',
-        amount: input.amount,
+        amount,
         description: input.description ?? `Transfer from ${source.name}`,
         transactionDate: now,
         source: 'MANUAL',
@@ -77,16 +97,10 @@ export async function createTransfer(userId: string, input: CreateTransferInput)
       },
     });
 
-    // Computed from the stale reads above, not from a locked re-read —
-    // this is the bug.
-    await tx.account.update({
-      where: { id: source.id },
-      data: { currentBalance: source.currentBalance.minus(input.amount) },
-    });
-    await tx.account.update({
-      where: { id: destination.id },
-      data: { currentBalance: destination.currentBalance.plus(input.amount) },
-    });
+    // Rows are already locked above; these just compute and write the new
+    // balances relative to the locked (accurate) values.
+    await adjustAccountBalance(tx, input.sourceAccountId, amount.negated());
+    await adjustAccountBalance(tx, input.destinationAccountId, amount);
 
     await recordAudit(tx, {
       userId,

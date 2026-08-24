@@ -9,7 +9,7 @@ type Db = Prisma.TransactionClient;
  * transaction (Postgres `SELECT ... FOR UPDATE`). Must only be called
  * inside `prisma.$transaction(...)` — the lock is released on commit/rollback.
  */
-async function lockAccount(tx: Db, accountId: string) {
+export async function lockAccount(tx: Db, accountId: string) {
   const rows = await tx.$queryRaw<Array<{ id: string; current_balance: Prisma.Decimal }>>`
     SELECT id, current_balance FROM accounts WHERE id = ${accountId} FOR UPDATE
   `;
