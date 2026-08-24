@@ -150,6 +150,12 @@ model Transaction {
   @@index([userId, transactionDate])
   @@index([accountId, transactionDate])
   @@index([userId, categoryId])
+  // Added in Phase 9 based on EXPLAIN ANALYZE evidence against the seeded
+  // 50,000-row heavy user: amount-sorted listing (?sort=amount_desc/asc)
+  // had no supporting index and fell back to a sequential scan of the
+  // whole table (33ms) — this index turns it into an index-only ordered
+  // scan. See README performance section for the measured before/after.
+  @@index([userId, amount])
   @@map("transactions")
 }
 
