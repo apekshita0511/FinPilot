@@ -41,3 +41,8 @@ export function createApp() {
 
   return app;
 }
+
+// Vercel's entrypoint auto-detection checks `src/app` before `src/server`
+// (see FinPilot Phase 10 deployment notes) and requires a default export —
+// server.ts exports the same instance for local dev's app.listen().
+export default createApp();
