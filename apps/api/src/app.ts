@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth.routes';
 import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
 import { transactionRouter } from './routes/transaction.routes';
+import { transferRouter } from './routes/transfer.routes';
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,7 @@ export function createApp() {
   app.use('/api/accounts', accountRouter);
   app.use('/api/categories', categoryRouter);
   app.use('/api/transactions', transactionRouter);
+  app.use('/api/transfers', transferRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
