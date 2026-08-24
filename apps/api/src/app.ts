@@ -6,6 +6,7 @@ import { env } from './lib/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { accountRouter } from './routes/account.routes';
 import { authRouter } from './routes/auth.routes';
+import { budgetRouter } from './routes/budget.routes';
 import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
 import { transactionRouter } from './routes/transaction.routes';
@@ -29,6 +30,7 @@ export function createApp() {
   app.use('/api/categories', categoryRouter);
   app.use('/api/transactions', transactionRouter);
   app.use('/api/transfers', transferRouter);
+  app.use('/api/budgets', budgetRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
