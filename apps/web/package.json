@@ -11,7 +11,9 @@
   },
   "dependencies": {
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.1.1",
+    "@finpilot/shared": "*"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

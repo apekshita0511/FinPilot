@@ -1,0 +1,46 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.control {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 0;
+  border-color: var(--brand);
+}
+
+.control::placeholder {
+  color: var(--text-faint);
+}
+
+.controlError {
+  border-color: var(--danger);
+}
+
+.errorText {
+  font-size: 0.8125rem;
+  color: var(--danger);
+}
+
+.hint {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}

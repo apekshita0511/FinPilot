@@ -1,0 +1,33 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.income {
+  background: var(--income-bg);
+  color: var(--income);
+  border-color: transparent;
+}
+.expense {
+  background: var(--expense-bg);
+  color: var(--expense);
+  border-color: transparent;
+}
+.warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border-color: transparent;
+}
+.danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: transparent;
+}
