@@ -4,6 +4,7 @@ import express from 'express';
 
 import { env } from './lib/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
+import { authRouter } from './routes/auth.routes';
 import { healthRouter } from './routes/health.routes';
 
 export function createApp() {
@@ -19,6 +20,7 @@ export function createApp() {
   app.use(cookieParser());
 
   app.use('/api/health', healthRouter);
+  app.use('/api/auth', authRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
