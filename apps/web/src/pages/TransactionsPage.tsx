@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import * as accountsApi from '../api/accounts';
 import * as categoriesApi from '../api/categories';
@@ -16,6 +17,7 @@ import type { Transaction, TransactionType } from '../types';
 import styles from './TransactionsPage.module.css';
 
 export function TransactionsPage() {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [accountId, setAccountId] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -140,9 +142,17 @@ export function TransactionsPage() {
           message={
             accountId || categoryId || type || search
               ? 'Try adjusting your filters.'
-              : 'Add your first transaction to get started.'
+              : accountList.length === 0
+                ? 'Create an account before adding a transaction.'
+                : 'Add your first transaction to get started.'
           }
-          action={<Button onClick={() => setShowForm(true)}>New transaction</Button>}
+          action={
+            accountList.length === 0 ? (
+              <Button onClick={() => navigate('/accounts')}>Create an account</Button>
+            ) : (
+              <Button onClick={() => setShowForm(true)}>New transaction</Button>
+            )
+          }
         />
       )}
       {txns.data && txns.data.data.length > 0 && (
