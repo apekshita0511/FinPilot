@@ -3,6 +3,9 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // babel.config.cjs exists only for Jest (see jest.config.cjs). This
+  // version of @vitejs/plugin-react is oxc-based, not Babel — it never
+  // reads project Babel config, so the two toolchains can't interfere.
   plugins: [react()],
   server: {
     host: true,
