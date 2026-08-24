@@ -1,0 +1,47 @@
+.toolbar {
+  display: flex;
+  gap: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.accountCard {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.12s;
+}
+.accountCard:hover {
+  border-color: var(--border-strong);
+}
+
+.accountHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.accountName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.accountType {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
+.accountBalance {
+  font-size: 1.3rem;
+}

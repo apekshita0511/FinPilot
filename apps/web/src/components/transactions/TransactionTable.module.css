@@ -1,0 +1,43 @@
+.table th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  font-weight: 500;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.description {
+  font-weight: 500;
+}
+
+.sub {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.amountCell {
+  text-align: right;
+}
+
+.actionsCell {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}

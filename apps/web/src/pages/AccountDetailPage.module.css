@@ -1,0 +1,47 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metaLabel {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.metaValue {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.backLink {
+  display: inline-block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  margin-bottom: 10px;
+}
+.backLink:hover {
+  color: var(--text);
+}

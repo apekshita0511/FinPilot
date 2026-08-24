@@ -1,0 +1,152 @@
+.shell {
+  display: flex;
+  min-height: 100svh;
+}
+
+.sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 14px;
+  position: sticky;
+  top: 0;
+  height: 100svh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 22px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+
+.brandMark {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.navLink:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.navLinkActive {
+  background: var(--brand-bg);
+  color: var(--brand);
+}
+
+.userBox {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 32px 60px;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.mobileTopbar {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .shell {
+    flex-direction: column;
+  }
+  .sidebar {
+    display: none;
+  }
+  .mobileTopbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .mobileNav {
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .mobileNav .navLink {
+    flex-shrink: 0;
+  }
+  .main {
+    padding: 20px 16px 40px;
+  }
+}
