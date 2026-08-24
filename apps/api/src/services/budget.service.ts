@@ -3,15 +3,9 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
 import { ApiError } from '../middleware/errorHandler';
 import { isUniqueViolation } from '../lib/prismaErrors';
+import { monthRange } from '../lib/dateRange';
 import { recordAudit } from './audit.service';
 import type { CreateBudgetInput, ListBudgetsQuery, UpdateBudgetInput } from '../validation/budget.validation';
-
-function monthRange(year: number, month: number) {
-  return {
-    from: new Date(Date.UTC(year, month - 1, 1)),
-    to: new Date(Date.UTC(year, month, 1)),
-  };
-}
 
 // Spending is always derived from the transaction ledger at query time,
 // never stored on the Budget row (see FinPilot Phase 1 design) — a budget

@@ -5,6 +5,7 @@ import express from 'express';
 import { env } from './lib/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { accountRouter } from './routes/account.routes';
+import { analyticsRouter } from './routes/analytics.routes';
 import { authRouter } from './routes/auth.routes';
 import { budgetRouter } from './routes/budget.routes';
 import { categoryRouter } from './routes/category.routes';
@@ -33,6 +34,7 @@ export function createApp() {
   app.use('/api/transfers', transferRouter);
   app.use('/api/budgets', budgetRouter);
   app.use('/api/imports', importRouter);
+  app.use('/api/analytics', analyticsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
