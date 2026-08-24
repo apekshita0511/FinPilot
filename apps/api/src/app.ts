@@ -8,6 +8,7 @@ import { accountRouter } from './routes/account.routes';
 import { authRouter } from './routes/auth.routes';
 import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
+import { transactionRouter } from './routes/transaction.routes';
 
 export function createApp() {
   const app = express();
@@ -25,6 +26,7 @@ export function createApp() {
   app.use('/api/auth', authRouter);
   app.use('/api/accounts', accountRouter);
   app.use('/api/categories', categoryRouter);
+  app.use('/api/transactions', transactionRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
