@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth.routes';
 import { budgetRouter } from './routes/budget.routes';
 import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
+import { importRouter } from './routes/import.routes';
 import { transactionRouter } from './routes/transaction.routes';
 import { transferRouter } from './routes/transfer.routes';
 
@@ -31,6 +32,7 @@ export function createApp() {
   app.use('/api/transactions', transactionRouter);
   app.use('/api/transfers', transferRouter);
   app.use('/api/budgets', budgetRouter);
+  app.use('/api/imports', importRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
