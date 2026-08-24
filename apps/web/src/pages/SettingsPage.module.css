@@ -1,0 +1,74 @@
+.grid {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+}
+
+.profileRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.875rem;
+}
+.profileRow:last-child {
+  border-bottom: none;
+}
+
+.profileLabel {
+  color: var(--text-muted);
+}
+
+.categorySection {
+  margin-bottom: 18px;
+}
+.categorySection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+}
+
+.categoryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categoryChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 12px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  font-size: 0.8125rem;
+}
+
+.chipDelete {
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 999px;
+}
+.chipDelete:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.addForm {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: flex-end;
+}

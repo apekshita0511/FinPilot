@@ -1,0 +1,54 @@
+.monthPicker {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.budgetCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 20px;
+}
+
+.budgetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 12px;
+}
+
+.budgetName {
+  font-weight: 600;
+}
+
+.budgetAmounts {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.budgetFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.percent {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.budgetActions {
+  display: flex;
+  gap: 4px;
+}

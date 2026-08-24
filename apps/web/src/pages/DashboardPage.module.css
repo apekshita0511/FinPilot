@@ -1,0 +1,74 @@
+.columns {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 960px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.txnRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.txnRow:last-child {
+  border-bottom: none;
+}
+
+.txnMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.txnDescription {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.txnSub {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.budgetRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.budgetRow:last-child {
+  border-bottom: none;
+}
+
+.budgetHeader {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.budgetName {
+  font-weight: 500;
+}
+
+.budgetAmounts {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
