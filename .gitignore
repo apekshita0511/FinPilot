@@ -49,3 +49,6 @@ desktop.ini
 *.tmp
 *.temp
 .cache/
+
+.vercel
+.env*
