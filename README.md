@@ -1,5 +1,7 @@
 # FinPilot
 
+[![CI](https://github.com/apekshita0511/FinPilot/actions/workflows/ci.yml/badge.svg)](https://github.com/apekshita0511/FinPilot/actions/workflows/ci.yml)
+
 A personal finance web app. Users register, add their financial accounts, record
 income and expenses, organise them into categories, set monthly budgets, and see a
 dashboard of where their money is going.
@@ -146,6 +148,10 @@ The Vite dev server proxies `/api` to `localhost:4000`.
 
 ## Deployment
 
+Every push and PR to `main` runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+lint (eslint + oxlint), `prisma validate`, and a typecheck + build of both apps,
+on Node 22 and 24.
+
 Deployed on **Vercel** as two projects from this one repo:
 
 - **web** — static Vite build. `apps/web/vercel.json` does two things: serve
@@ -166,4 +172,6 @@ Deployed on **Vercel** as two projects from this one repo:
 - No rate limiting on login/register yet.
 - Transaction search uses `ILIKE '%term%'`, which can't use an index — fine at
   personal scale, but a trigram index would be the fix.
-- No automated tests in this version.
+- No automated tests yet. CI currently runs lint + typecheck + build on every
+  push (`.github/workflows/ci.yml`); the next step is an integration suite
+  against a real Postgres.
