@@ -5,11 +5,11 @@ export function listCategories() {
   return apiFetch<{ categories: Category[] }>('/categories');
 }
 
-export function createCategory(input: { name: string; type: CategoryType; color?: string }) {
+export function createCategory(input: { name: string; type: CategoryType }) {
   return apiFetch<{ category: Category }>('/categories', { method: 'POST', body: input });
 }
 
-export function updateCategory(id: string, input: Partial<{ name: string; color: string | null }>) {
+export function updateCategory(id: string, input: { name: string }) {
   return apiFetch<{ category: Category }>(`/categories/${id}`, { method: 'PATCH', body: input });
 }
 

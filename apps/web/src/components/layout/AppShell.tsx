@@ -10,8 +10,6 @@ const NAV_ITEMS = [
   { to: '/accounts', label: 'Accounts', icon: '▤' },
   { to: '/transactions', label: 'Transactions', icon: '⇄' },
   { to: '/budgets', label: 'Budgets', icon: '◔' },
-  { to: '/import', label: 'Import', icon: '⇩' },
-  { to: '/analytics', label: 'Analytics', icon: '▦' },
   { to: '/settings', label: 'Settings', icon: '⚙' },
 ];
 

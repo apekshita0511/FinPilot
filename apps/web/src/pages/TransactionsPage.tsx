@@ -116,8 +116,6 @@ export function TransactionsPage() {
             <option value="">All types</option>
             <option value="INCOME">Income</option>
             <option value="EXPENSE">Expense</option>
-            <option value="TRANSFER_IN">Transfer in</option>
-            <option value="TRANSFER_OUT">Transfer out</option>
           </Select>
         </div>
         <div className={styles.searchField}>

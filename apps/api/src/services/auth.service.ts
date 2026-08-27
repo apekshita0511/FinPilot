@@ -1,6 +1,6 @@
 import { prisma } from '../lib/prisma';
 import { hashPassword, verifyPassword } from '../lib/password';
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../lib/jwt';
+import { signToken } from '../lib/jwt';
 import { DEFAULT_CATEGORIES } from '../lib/defaultCategories';
 import { ApiError } from '../middleware/errorHandler';
 import type { LoginInput, RegisterInput } from '../validation/auth.validation';
@@ -27,6 +27,8 @@ export async function register(input: RegisterInput) {
 
   const passwordHash = await hashPassword(input.password);
 
+  // Create the user and seed their default categories together, so a new
+  // account is never left without categories.
   const user = await prisma.$transaction(async (tx) => {
     const created = await tx.user.create({
       data: { email, passwordHash, name: input.name },
@@ -40,10 +42,7 @@ export async function register(input: RegisterInput) {
     return created;
   });
 
-  const accessToken = signAccessToken(user.id);
-  const refreshToken = signRefreshToken(user.id);
-
-  return { user, accessToken, refreshToken };
+  return { user, token: signToken(user.id) };
 }
 
 export async function login(input: LoginInput) {
@@ -51,33 +50,13 @@ export async function login(input: LoginInput) {
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Same error for "no such user" and "wrong password" — don't leak which
-  // one it was.
+  // Same message whether the email is unknown or the password is wrong.
   if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  const accessToken = signAccessToken(user.id);
-  const refreshToken = signRefreshToken(user.id);
-
   const { passwordHash: _passwordHash, ...safeUser } = user;
-  return { user: safeUser, accessToken, refreshToken };
-}
-
-export async function refreshAccessToken(refreshToken: string) {
-  let userId: string;
-  try {
-    userId = verifyRefreshToken(refreshToken);
-  } catch {
-    throw new ApiError(401, 'Invalid or expired refresh token');
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
-  if (!user) {
-    throw new ApiError(401, 'Invalid or expired refresh token');
-  }
-
-  return signAccessToken(user.id);
+  return { user: safeUser, token: signToken(user.id) };
 }
 
 export async function getCurrentUser(userId: string) {

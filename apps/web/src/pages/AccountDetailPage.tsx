@@ -128,7 +128,7 @@ export function AccountDetailPage() {
             </div>
             <div className={styles.metaItem}>
               <span className={styles.metaLabel}>Current balance</span>
-              <Money value={acc.currentBalance} className={styles.metaValue} />
+              <Money value={acc.balance} className={styles.metaValue} />
             </div>
           </div>
         </div>

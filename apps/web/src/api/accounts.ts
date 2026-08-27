@@ -9,12 +9,7 @@ export function getAccount(id: string) {
   return apiFetch<{ account: Account }>(`/accounts/${id}`);
 }
 
-export function createAccount(input: {
-  name: string;
-  accountType: AccountType;
-  currency: string;
-  openingBalance: number;
-}) {
+export function createAccount(input: { name: string; accountType: AccountType; openingBalance: number }) {
   return apiFetch<{ account: Account }>('/accounts', { method: 'POST', body: input });
 }
 

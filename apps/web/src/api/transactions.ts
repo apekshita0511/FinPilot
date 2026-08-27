@@ -10,10 +10,8 @@ export interface TransactionFilters {
   type?: TransactionType;
   from?: string;
   to?: string;
-  minAmount?: number;
-  maxAmount?: number;
   search?: string;
-  sort?: 'date_asc' | 'date_desc' | 'amount_asc' | 'amount_desc';
+  sort?: 'date_asc' | 'date_desc';
 }
 
 export function listTransactions(filters: TransactionFilters = {}) {
@@ -23,7 +21,7 @@ export function listTransactions(filters: TransactionFilters = {}) {
 export function createTransaction(input: {
   accountId: string;
   categoryId?: string;
-  type: 'INCOME' | 'EXPENSE';
+  type: TransactionType;
   amount: number;
   description: string;
   transactionDate: string;
@@ -35,7 +33,7 @@ export function updateTransaction(
   id: string,
   input: Partial<{
     categoryId: string | null;
-    type: 'INCOME' | 'EXPENSE';
+    type: TransactionType;
     amount: number;
     description: string;
     transactionDate: string;

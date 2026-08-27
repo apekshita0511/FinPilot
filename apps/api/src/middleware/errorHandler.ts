@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from 'express';
-import { MulterError } from 'multer';
 import { ZodError } from 'zod';
 
 export class ApiError extends Error {
@@ -23,10 +22,6 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
 
   if (err instanceof ZodError) {
     return res.status(422).json({ error: 'Validation failed', details: err.flatten() });
-  }
-
-  if (err instanceof MulterError) {
-    return res.status(422).json({ error: `Upload error: ${err.message}` });
   }
 
   console.error(err);

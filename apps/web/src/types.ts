@@ -1,6 +1,6 @@
-import type { AccountType, CategoryType, TransactionType, TransactionSource } from '@finpilot/shared';
+import type { AccountType, CategoryType, TransactionType } from '@finpilot/shared';
 
-export type { AccountType, CategoryType, TransactionType, TransactionSource };
+export type { AccountType, CategoryType, TransactionType };
 
 export interface User {
   id: string;
@@ -15,9 +15,9 @@ export interface Account {
   userId: string;
   name: string;
   accountType: AccountType;
-  currency: string;
   openingBalance: string;
-  currentBalance: string;
+  /** Derived by the API: openingBalance + income - expenses. */
+  balance: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -28,7 +28,6 @@ export interface Category {
   userId: string;
   name: string;
   type: CategoryType;
-  color: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,11 +41,6 @@ export interface Transaction {
   amount: string;
   description: string;
   transactionDate: string;
-  source: TransactionSource;
-  externalReference: string | null;
-  fingerprint: string | null;
-  transferId: string | null;
-  importBatchId: string | null;
   createdAt: string;
   updatedAt: string;
   category?: Category | null;
@@ -58,18 +52,6 @@ export interface Pagination {
   pageSize: number;
   total: number;
   totalPages: number;
-}
-
-export interface Transfer {
-  id: string;
-  userId: string;
-  sourceAccountId: string;
-  destinationAccountId: string;
-  amount: string;
-  description: string | null;
-  createdAt: string;
-  sourceAccount?: { id: string; name: string };
-  destinationAccount?: { id: string; name: string };
 }
 
 export interface Budget {
@@ -87,34 +69,6 @@ export interface Budget {
   percentUsed: number;
 }
 
-export interface ImportBatch {
-  id: string;
-  userId: string;
-  accountId: string;
-  filename: string;
-  totalRows: number;
-  importedRows: number;
-  duplicateRows: number;
-  failedRows: number;
-  status: 'COMPLETED' | 'FAILED';
-  createdAt: string;
-  account?: { id: string; name: string };
-}
-
-export interface CsvRowError {
-  row: number;
-  error: string;
-}
-
-export interface ImportResult {
-  importBatch: ImportBatch;
-  totalRows: number;
-  importedRows: number;
-  duplicateRows: number;
-  failedRows: number;
-  errors: CsvRowError[];
-}
-
 export interface AnalyticsSummary {
   year: number;
   month: number;
@@ -127,14 +81,5 @@ export interface AnalyticsSummary {
 export interface CategorySpending {
   categoryId: string | null;
   categoryName: string;
-  color: string | null;
   total: string;
-}
-
-export interface MonthlyTrendPoint {
-  year: number;
-  month: number;
-  income: string;
-  expenses: string;
-  netCashFlow: string;
 }

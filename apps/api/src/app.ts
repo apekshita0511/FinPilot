@@ -10,9 +10,7 @@ import { authRouter } from './routes/auth.routes';
 import { budgetRouter } from './routes/budget.routes';
 import { categoryRouter } from './routes/category.routes';
 import { healthRouter } from './routes/health.routes';
-import { importRouter } from './routes/import.routes';
 import { transactionRouter } from './routes/transaction.routes';
-import { transferRouter } from './routes/transfer.routes';
 
 export function createApp() {
   const app = express();
@@ -31,9 +29,7 @@ export function createApp() {
   app.use('/api/accounts', accountRouter);
   app.use('/api/categories', categoryRouter);
   app.use('/api/transactions', transactionRouter);
-  app.use('/api/transfers', transferRouter);
   app.use('/api/budgets', budgetRouter);
-  app.use('/api/imports', importRouter);
   app.use('/api/analytics', analyticsRouter);
 
   app.use(notFoundHandler);
@@ -42,7 +38,6 @@ export function createApp() {
   return app;
 }
 
-// Vercel's entrypoint auto-detection checks `src/app` before `src/server`
-// (see FinPilot Phase 10 deployment notes) and requires a default export —
-// server.ts exports the same instance for local dev's app.listen().
+// Vercel detects this default export and runs the whole Express app as one
+// serverless function. server.ts uses the same factory for local dev.
 export default createApp();

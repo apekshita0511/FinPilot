@@ -4,20 +4,19 @@ import { prisma } from '../lib/prisma';
 import { ApiError } from '../middleware/errorHandler';
 import { isUniqueViolation } from '../lib/prismaErrors';
 import { monthRange } from '../lib/dateRange';
-import { recordAudit } from './audit.service';
 import type { CreateBudgetInput, ListBudgetsQuery, UpdateBudgetInput } from '../validation/budget.validation';
 
-// Spending is always derived from the transaction ledger at query time,
-// never stored on the Budget row (see FinPilot Phase 1 design) — a budget
-// view is a low-frequency read, so the aggregate cost here is not the hot
-// path the transaction-listing indexes were built for.
+const ZERO = new Prisma.Decimal(0);
+
+// Spending is summed from the transaction ledger every time a budget is
+// read, never stored on the budget row.
 async function computeSpent(userId: string, categoryId: string, year: number, month: number) {
   const { from, to } = monthRange(year, month);
   const result = await prisma.transaction.aggregate({
     where: { userId, categoryId, type: 'EXPENSE', transactionDate: { gte: from, lt: to } },
     _sum: { amount: true },
   });
-  return result._sum.amount ?? new Prisma.Decimal(0);
+  return result._sum.amount ?? ZERO;
 }
 
 function withStatus<T extends { limitAmount: Prisma.Decimal }>(budget: T, spent: Prisma.Decimal) {
@@ -38,10 +37,7 @@ export async function listBudgets(userId: string, query: ListBudgetsQuery) {
   });
 
   return Promise.all(
-    budgets.map(async (budget) => {
-      const spent = await computeSpent(userId, budget.categoryId, budget.year, budget.month);
-      return withStatus(budget, spent);
-    }),
+    budgets.map(async (budget) => withStatus(budget, await computeSpent(userId, budget.categoryId, budget.year, budget.month))),
   );
 }
 
@@ -64,26 +60,14 @@ export async function createBudget(userId: string, input: CreateBudgetInput) {
   }
 
   try {
-    return await prisma.$transaction(async (tx) => {
-      const budget = await tx.budget.create({
-        data: {
-          userId,
-          categoryId: input.categoryId,
-          year: input.year,
-          month: input.month,
-          limitAmount: input.limitAmount,
-        },
-      });
-
-      await recordAudit(tx, {
+    return await prisma.budget.create({
+      data: {
         userId,
-        action: 'BUDGET_CREATED',
-        entityType: 'Budget',
-        entityId: budget.id,
-        metadata: { categoryId: input.categoryId, year: input.year, month: input.month, limitAmount: input.limitAmount },
-      });
-
-      return budget;
+        categoryId: input.categoryId,
+        year: input.year,
+        month: input.month,
+        limitAmount: input.limitAmount,
+      },
     });
   } catch (err) {
     if (isUniqueViolation(err)) {
@@ -94,26 +78,14 @@ export async function createBudget(userId: string, input: CreateBudgetInput) {
 }
 
 export async function updateBudget(userId: string, budgetId: string, input: UpdateBudgetInput) {
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.budget.findFirst({ where: { id: budgetId, userId } });
-    if (!existing) {
-      throw new ApiError(404, 'Budget not found');
-    }
+  const existing = await prisma.budget.findFirst({ where: { id: budgetId, userId } });
+  if (!existing) {
+    throw new ApiError(404, 'Budget not found');
+  }
 
-    const budget = await tx.budget.update({
-      where: { id: budgetId },
-      data: { limitAmount: input.limitAmount },
-    });
-
-    await recordAudit(tx, {
-      userId,
-      action: 'BUDGET_UPDATED',
-      entityType: 'Budget',
-      entityId: budget.id,
-      metadata: { before: { limitAmount: existing.limitAmount }, after: { limitAmount: input.limitAmount } },
-    });
-
-    return budget;
+  return prisma.budget.update({
+    where: { id: budgetId },
+    data: { limitAmount: input.limitAmount },
   });
 }
 

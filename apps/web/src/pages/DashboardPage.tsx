@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 
 import * as analyticsApi from '../api/analytics';
+import * as budgetsApi from '../api/budgets';
 import * as transactionsApi from '../api/transactions';
 import { PageHeader } from '../components/layout/AppShell';
 import { CategoryBarList } from '../components/ui/CategoryBarList';
@@ -20,7 +21,7 @@ export function DashboardPage() {
 
   const summary = useApiData(() => analyticsApi.getSummary({ year, month }), [year, month]);
   const spending = useApiData(() => analyticsApi.getSpendingByCategory({ year, month }), [year, month]);
-  const budgets = useApiData(() => analyticsApi.getBudgetUtilization({ year, month }), [year, month]);
+  const budgets = useApiData(() => budgetsApi.listBudgets({ year, month }), [year, month]);
   const recentTxns = useApiData(() => transactionsApi.listTransactions({ pageSize: 6, sort: 'date_desc' }), []);
 
   return (
@@ -90,7 +91,7 @@ export function DashboardPage() {
                     </div>
                     <Money
                       value={t.amount}
-                      sign={t.type === 'INCOME' || t.type === 'TRANSFER_IN' ? 'income' : 'expense'}
+                      sign={t.type === 'INCOME' ? 'income' : 'expense'}
                     />
                   </div>
                 ))}
