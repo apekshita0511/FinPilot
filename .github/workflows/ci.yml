@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A newer push to the same branch/PR cancels an in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.x', '24.x']
+    env:
+      # CI never connects to a database. This only satisfies Prisma's
+      # env("DATABASE_URL") lookup while it reads the schema.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (eslint for api, oxlint for web)
+        run: npm run lint
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+        working-directory: apps/api
+
+      - name: Typecheck and build the API
+        run: npm run build:api
+
+      - name: Typecheck and build the web app
+        run: npm run build:web
